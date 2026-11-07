@@ -1,0 +1,50 @@
+namespace: iot-platform
+replicaCount: 2
+
+image:
+  repository: registry.verizon-dummy.example.com/iot-platform/iot-provisioning-service
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  host: iot-api.verizon-dummy.example.com
+  tlsSecret: iot-api-tls
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 8m
+    cert-manager.io/cluster-issuer: dummy-letsencrypt
+  # only these path prefixes are exposed externally; anything else is cluster-internal only
+  paths:
+    - /api/v1/provisioning
+
+config:
+  SPRING_PROFILES_ACTIVE: prod
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: iot-kafka-0.iot-kafka-headless.messaging.svc.cluster.local:9092,iot-kafka-1.iot-kafka-headless.messaging.svc.cluster.local:9092
+  SPRING_DATASOURCE_URL: jdbc:postgresql://iot-postgres.databases.svc.cluster.local:5432/provisioningdb
+  SPRING_DATASOURCE_USERNAME: provisioningdb_user
+  CLIENTS_INVENTORY_BASE_URL: http://iot-inventory-service.iot-platform.svc.cluster.local:8080
+  CLIENTS_BILLING_BASE_URL: http://iot-billing-service.iot-platform.svc.cluster.local:8080
+  CLIENTS_THINGSPACE_BASE_URL: https://thingspace.verizon-dummy.example.com
+
+secrets:
+  dbPassword: change-me-dummy
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPU: 70

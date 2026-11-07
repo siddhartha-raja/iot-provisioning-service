@@ -1,0 +1,54 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: iot-provisioning-service
+  datasource:
+    url: jdbc:h2:mem:provisioningdb
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: iot-provisioning-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+app:
+  kafka:
+    topics:
+      # consumed
+      inventory-reserved: iot.inventory.reserved
+      order-cancelled: iot.order.cancelled
+      # produced
+      sim-activated: iot.sim.activated
+      sim-deactivated: iot.sim.deactivated
+      provisioning-failed: iot.provisioning.failed
+
+clients:
+  inventory:
+    base-url: http://localhost:8082
+  billing:
+    base-url: http://localhost:8084
+  thingspace:
+    base-url: https://thingspace.verizon-dummy.example.com
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true

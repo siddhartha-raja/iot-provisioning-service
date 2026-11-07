@@ -1,0 +1,6 @@
+apiVersion: v2
+name: iot-provisioning-service
+description: Activates and deactivates SIMs on the carrier network (ThingSpace)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
